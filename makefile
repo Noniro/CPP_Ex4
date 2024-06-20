@@ -21,7 +21,7 @@ SOURCES = $(filter-out test.cpp, $(wildcard *.cpp))
 HEADERS = $(wildcard *.hpp)
 
 #Sources for test
-TEST_SOURCES = $(wildcard *.cpp)
+TEST_SOURCES = $(filter-out main.cpp, $(wildcard *.cpp))
 
 # Output directory
 BUILD_DIR = build
@@ -76,6 +76,6 @@ test: $(TEST_BINARY)
 	./$(TEST_BINARY)
 
 $(TEST_BINARY): $(TEST_OBJS)
-	$(CXX) $(CXXFLAGS) $(TEST_OBJ) -o $(TEST_BINARY) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(TEST_OBJS) -o $(TEST_BINARY) $(LDFLAGS)
 
 .PHONY: all clean tree complex test
