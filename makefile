@@ -31,7 +31,7 @@ BINARY = $(BUILD_DIR)/$(TARGET)
 TEST_BINARY = $(BUILD_DIR)/$(TEST_TARGET)
 
 # Compiler flags
-CXXFLAGS = -I$(QT_INCPATH) -I$(QT_INCPATH)/QtWidgets -I$(QT_INCPATH)/QtGui -I$(QT_INCPATH)/QtCore -std=c++14 -fPIC -Wall -Wextra
+CXXFLAGS = -I$(QT_INCPATH) -I$(QT_INCPATH)/QtWidgets -I$(QT_INCPATH)/QtGui -I$(QT_INCPATH)/QtCore -std=c++17 -fPIC -Wall
 LDFLAGS = -L$(QT_LIBPATH) $(QT_LIBS)
 
 # Default target
@@ -59,6 +59,9 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 # Run the program
+tree: all
+	./$(BINARY) tree
+
 tree1: all
 	./$(BINARY) tree1
 
