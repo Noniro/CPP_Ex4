@@ -6,23 +6,38 @@
 #include <queue>
 #include <stack>
 #include "Node.hpp"
+#include "Complex.hpp"
+
+using namespace std;
 
 template <typename T>
 class Tree {
 private:
     Node<T>* root;
-    int k;
+    size_t k;
 
 public:
-    Tree(int k = 2) : root(nullptr), k(k) {}
+    Tree(size_t k = 2) : root(nullptr), k(k) {}
 
-    void add_root(Node<T>& node) {
-    if (root) {
-        root->value = node.value;
-    } else {
-        root = &node;
+    ~Tree() {
+        cout<<"destructor 😈"<<endl;
+    auto bfs_start = begin_bfs();
+    auto bfs_end = end_bfs();
+    auto prev = bfs_start;
+    while (bfs_start != bfs_end) {
+        prev = bfs_start;
+        ++bfs_start;
+        prev->children.clear();
     }
 }
+
+    void add_root(Node<T>& node) {
+        if (root) {
+            root->value = node.value;
+        } else {
+            root = &node;
+        }
+    }
 
     Node<T>* get_root() const {
         return root;
@@ -32,37 +47,36 @@ public:
         if (parent.children.size() < k) {
             parent.add_child(&child);
         } else {
-            throw std::runtime_error("Exceeded maximum number of children");
+            throw runtime_error("Exceeded maximum number of children");
         }
     }
 
-    class dfs_iterator{ 
+    class dfs_iterator {
     protected:
         Node<T>* current;
-        std::stack<Node<T>*> stack;
+        stack<Node<T>*> Nodestack;
 
     public:
         dfs_iterator(Node<T>* current) : current(current) {
             if (current) {
-                stack.push(current);
+                Nodestack.push(current);
             }
         }
 
-        virtual dfs_iterator& operator++() {
-            std::cout<<"dfs_iterator++\n";
-            if (!stack.empty()) {
-                Node<T>* node = stack.top();
-                stack.pop();
-                current = nullptr;  // Clear current
+        dfs_iterator& operator++() {
+            if (!Nodestack.empty()) {
+                Node<T>* node = Nodestack.top();
+                Nodestack.pop();
+                current = nullptr;
 
                 for (int i = node->children.size() - 1; i >= 0; --i) {
                     if (node->children[i]) {
-                        stack.push(node->children[i]);
+                        Nodestack.push(node->children[i]);
                     }
                 }
 
-                if (!stack.empty()) {
-                    current = stack.top();
+                if (!Nodestack.empty()) {
+                    current = Nodestack.top();
                 }
             }
             return *this;
@@ -71,16 +85,19 @@ public:
         bool operator!=(const dfs_iterator& other) const {
             return current != other.current;
         }
+
         bool operator==(const dfs_iterator& other) const {
             return current == other.current;
         }
+
         Node<T>& operator*() const {
             return *current;
         }
+
         Node<T>* operator->() const {
             return current;
         }
-};
+    };
 
     dfs_iterator begin_dfs() {
         return dfs_iterator(root);
@@ -90,180 +107,125 @@ public:
         return dfs_iterator(nullptr);
     }
 
- 
     // Pre-order iterator
-    class pre_order_iterator : public dfs_iterator{
+    class pre_order_iterator {
     private:
-        std::stack<Node<T>*> stack;
+        stack<Node<T>*> Nodestack;
+        Node<T>* current;
+        size_t k;
 
     public:
-        pre_order_iterator(Node<T>* root) : dfs_iterator(root){
-            if (root) stack.push(root);
+        pre_order_iterator(Node<T>* root, size_t k) : current(nullptr), k(k) {
+            if (root) {
+                Nodestack.push(root);
+                current = root;
+            }
         }
 
-       pre_order_iterator& operator++() override {
-            if (!this->stack.empty()) {
-                Node<T>* node = this->stack.top();
-                this->stack.pop();
-
-                for (int i = node->children.size() - 1; i >= 0; --i) {
-                    if (node->children[i]) {
-                        this->stack.push(node->children[i]);
+        pre_order_iterator& operator++() {
+            if (!Nodestack.empty()) {
+                Node<T>* node = Nodestack.top();
+                Nodestack.pop();
+                if (k != 2) {
+                    // Custom DFS logic
+                    for (int i = node->children.size() - 1; i >= 0; --i) {
+                        if (node->children[i]) {
+                            Nodestack.push(node->children[i]);
+                        }
+                    }
+                } else {
+                    // Pre-order traversal for k=2
+                    for (int i = node->children.size() - 1; i >= 0; --i) {
+                        Nodestack.push(node->children[i]);
                     }
                 }
-
-                if (!this->stack.empty()) {
-                    this->current = this->stack.top();
-                } else {
-                    this->current = nullptr;
-                }
+                current = Nodestack.empty() ? nullptr : Nodestack.top();
+            } else {
+                current = nullptr;
             }
             return *this;
         }
 
-
         Node<T>& operator*() const {
-            return *stack.top();
+            return *current;
         }
 
         Node<T>* operator->() const {
-            return stack.top();
+            return current;
         }
 
         bool operator!=(const pre_order_iterator& other) const {
-            return !(*this == other);
+            return current != other.current;
         }
 
         bool operator==(const pre_order_iterator& other) const {
-            return stack.empty() == other.stack.empty();
-        }
-    };
-
-    dfs_iterator begin_pre_order() {
-        if(k != 2){
-            std::cout<<"printing k!=2\n";
-            return dfs_iterator(root);
-        }
-        std::cout<<"printing pre order k=2\n";
-        return pre_order_iterator(root);
-    }
-
-    dfs_iterator end_pre_order() {
-        if(k != 2){
-            return dfs_iterator(nullptr);
-        }
-        return pre_order_iterator(nullptr);
-    }
-
-
-    class in_order_iterator : public dfs_iterator{
-    private:
-        std::stack<Node<T>*> stack;
-        Node<T>* current;
-
-        void push_left(Node<T>* node) {
-            while (node) {
-                stack.push(node);
-                if (!node->children.empty()) {
-                    node = node->children[0];
-                } else {
-                    node = nullptr;
-                }
-            }
-        }
-
-    public:
-        in_order_iterator(Node<T>* root) : dfs_iterator(root) {
-            push_left(root);
-            if (!stack.empty()) {
-                current = stack.top();
-                stack.pop();
-            }
-        }
-
-        in_order_iterator& operator++() override {
-            if (this->current) {
-                if (this->current->children.size() > 1) {
-                    push_left(this->current->children[1]);  // push the right child and its left descendants
-                }
-                if (!this->stack.empty()) {
-                    this->current = this->stack.top();
-                    this->stack.pop();
-                } else {
-                    this->current = nullptr;
-                }
-            }
-            return *this;
-        }
-            
-
-        T& operator*() {
-            return current->value;
-        }
-
-        T* operator->() {
-            return &(current->value);
-        }
-
-        bool operator!=(const in_order_iterator& other) const {
-            return current != other.current;
-        }
-        
-        bool operator==(const in_order_iterator& other) const {
             return current == other.current;
         }
     };
 
-    dfs_iterator begin_in_order() {
-        if(k!=2){
-            std::cout<<"printing in order k!=2\n";
-            return dfs_iterator(root);
-        }
-        std::cout<<"printing in order k=2\n";
-        return in_order_iterator(root);
+    pre_order_iterator begin_pre_order() {
+        return pre_order_iterator(root, this->k);
     }
 
-    dfs_iterator end_in_order() {
-        if(k != 2){
-            return dfs_iterator(nullptr);
-        }
-        return in_order_iterator(nullptr);
+    pre_order_iterator end_pre_order() {
+        return pre_order_iterator(nullptr, this->k);
     }
 
-    class post_order_iterator : public dfs_iterator{
+    // In-order iterator
+    class in_order_iterator {
     private:
-        std::stack<Node<T>*> stack;
+        stack<Node<T>*> Nodestack;
         Node<T>* current;
+        size_t k;
 
         void push_left(Node<T>* node) {
             while (node) {
-                stack.push(node);
-                if (!node->children.empty()) {
+                Nodestack.push(node);
+                if (k == 2 && !node->children.empty()) {
                     node = node->children[0];
                 } else {
-                    node = nullptr;
+                    break;
                 }
             }
         }
 
     public:
-
-        post_order_iterator(Node<T>* root) : dfs_iterator(root) {
-            push_left(root);
-            if (!stack.empty()) {
-                current = stack.top();
-                stack.pop();
+        in_order_iterator(Node<T>* root, size_t k = 2) : current(nullptr), k(k) {
+            if (k != 2) {
+                if (root) {
+                    Nodestack.push(root);
+                    current = root;
+                }
+            } else {
+                if (root) {
+                    push_left(root);
+                    if (!Nodestack.empty()) {
+                        current = Nodestack.top();
+                        Nodestack.pop();
+                    }
+                }
             }
         }
 
-        post_order_iterator& operator++() override {
-            if (current) {
-                if (!current->children.empty()) {
+        in_order_iterator& operator++() {
+            if (current && k == 2) {
+                if (!current->children.empty() && current->children.size() > 1) {
                     push_left(current->children[1]);
                 }
-                if (!stack.empty()) {
-                    current = stack.top();
-                    stack.pop();
+                if (!Nodestack.empty()) {
+                    current = Nodestack.top();
+                    Nodestack.pop();
+                } else {
+                    current = nullptr;
+                }
+            } else {
+                if (!Nodestack.empty()) {
+                    Node<T>* node = Nodestack.top();
+                    Nodestack.pop();
+                    for (int i = node->children.size() - 1; i >= 0; --i) {
+                        Nodestack.push(node->children[i]);
+                    }
+                    current = Nodestack.empty() ? nullptr : Nodestack.top();
                 } else {
                     current = nullptr;
                 }
@@ -271,66 +233,162 @@ public:
             return *this;
         }
 
-        T& operator*() {
-            return current->value;
+        Node<T>& operator*() const {
+            return *current;
         }
 
-        T* operator->() {
-            return &(current->value);
+        Node<T>* operator->() const {
+            return current;
+        }
+
+        bool operator!=(const in_order_iterator& other) const {
+            return current != other.current;
+        }
+
+        bool operator==(const in_order_iterator& other) const {
+            return current == other.current;
+        }
+    };
+
+    in_order_iterator begin_in_order() {
+        return in_order_iterator(root, this->k);
+    }
+
+    in_order_iterator end_in_order() {
+        return in_order_iterator(nullptr, this->k);
+    }
+
+
+    // Post-order iterator
+    class post_order_iterator {
+    private:
+        stack<Node<T>*> nodeStack;
+        stack<bool> visitStack;
+        Node<T>* current;
+        size_t k;
+
+        void push_left(Node<T>* node) {
+            while (node) {
+                nodeStack.push(node);
+                visitStack.push(false);
+                if (k == 2 && !node->children.empty()) {
+                    node = node->children[0];
+                } else {
+                    break;
+                }
+            }
+        }
+
+    public:
+        post_order_iterator(Node<T>* root = nullptr, size_t k = 2) : current(nullptr), k(k) {
+            if (k != 2) {
+                if (root) {
+                    nodeStack.push(root);
+                    current = root;
+                }
+            } else {
+                if (root) {
+                    push_left(root);
+                    while (!nodeStack.empty()) {
+                        Node<T>* node = nodeStack.top();
+                        if (node->children.size() > 1) {
+                            push_left(node->children[1]);
+                        } else {
+                            current = nodeStack.top();
+                            nodeStack.pop();
+                            visitStack.pop();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        post_order_iterator& operator++() {
+            if (k == 2) {
+                while (!nodeStack.empty()) {
+                    Node<T>* node = nodeStack.top();
+                    if (visitStack.top()) {
+                        nodeStack.pop();
+                        visitStack.pop();
+                        current = node;
+                        return *this;
+                    } else {
+                        visitStack.top() = true;
+                        if (node->children.size() > 1) {
+                            push_left(node->children[1]);
+                        }
+                    }
+                }
+                current = nullptr;
+            } else {
+                if (!nodeStack.empty()) {
+                    Node<T>* node = nodeStack.top();
+                    nodeStack.pop();
+                    for (int i = node->children.size() - 1; i >= 0; --i) {
+                        nodeStack.push(node->children[i]);
+                    }
+                    current = nodeStack.empty() ? nullptr : nodeStack.top();
+                } else {
+                    current = nullptr;
+                }
+            }
+            return *this;
+        }
+
+        Node<T>& operator*() const {
+            return *current;
+        }
+
+        Node<T>* operator->() const {
+            return current;
         }
 
         bool operator!=(const post_order_iterator& other) const {
             return current != other.current;
         }
+
         bool operator==(const post_order_iterator& other) const {
             return current == other.current;
         }
     };
 
-    dfs_iterator begin_post_order() {
-        if(k !=2){
-            std::cout<<"printing post order k!=2\n";
-            return dfs_iterator(root);
-        }
-        std::cout<<"printing post order k=2\n";
-        return post_order_iterator(root);
+    post_order_iterator begin_post_order() {
+        return post_order_iterator(root, k);
     }
 
-    dfs_iterator end_post_order() {
-        if(k !=2){
-            return dfs_iterator(nullptr);
-        }
-
-        return post_order_iterator(nullptr);
+    post_order_iterator end_post_order() {
+        return post_order_iterator();
     }
 
-    class bfs_iterator : public dfs_iterator{
+
+    // BFS iterator
+    class bfs_iterator {
     private:
-        std::queue<Node<T>*> queue;
+        queue<Node<T>*> nodeQueue;
 
     public:
-
-        bfs_iterator(Node<T>* root) : dfs_iterator(root) {
-            if (root) queue.push(root);
+        bfs_iterator(Node<T>* root) {
+            if (root) nodeQueue.push(root);
         }
 
-        bfs_iterator& operator++() override {
-            if (!queue.empty()) {
-                Node<T>* node = queue.front();
-                queue.pop();
+        bfs_iterator& operator++() {
+            if (!nodeQueue.empty()) {
+                Node<T>* node = nodeQueue.front();
+                nodeQueue.pop();
                 for (auto child : node->children) {
-                    if (child) queue.push(child);
+                    if (child) nodeQueue.push(child);
                 }
             }
             return *this;
         }
 
         Node<T>& operator*() {
-            return *queue.front();
+            return *nodeQueue.front();
         }
 
         Node<T>* operator->() {
-            return queue.front();
+            return nodeQueue.front();
         }
 
         bool operator!=(const bfs_iterator& other) const {
@@ -338,10 +396,78 @@ public:
         }
 
         bool operator==(const bfs_iterator& other) const {
-            return queue.empty() == other.queue.empty();
+            return nodeQueue.empty() == other.nodeQueue.empty();
         }
     };
 
+    bfs_iterator begin_bfs() {
+        return bfs_iterator(root);
+    }
+
+    bfs_iterator end_bfs() {
+        return bfs_iterator(nullptr);
+    }
+
+
+
+    class min_heap_iterator {
+    private:
+        priority_queue<Node<T>*, vector<Node<T>*>, NodeCompare<T>> nodeHeap;
+        Node<T>* current;
+
+        void push_children(Node<T>* node) {
+            for (auto child : node->children) {
+                nodeHeap.push(child);
+            }
+        }
+
+    public:
+        min_heap_iterator(Node<T>* root = nullptr) : current(nullptr) {
+            if (root) {
+                nodeHeap.push(root);
+                advance();
+            }
+        }
+
+        void advance() {
+            if (!nodeHeap.empty()) {
+                current = nodeHeap.top();
+                nodeHeap.pop();
+                push_children(current);
+            } else {
+                current = nullptr;
+            }
+        }
+
+        min_heap_iterator& operator++() {
+            advance();
+            return *this;
+        }
+
+        Node<T>& operator*() const {
+            return *current;
+        }
+
+        Node<T>* operator->() const {
+            return current;
+        }
+
+        bool operator!=(const min_heap_iterator& other) const {
+            return current != other.current;
+        }
+
+        bool operator==(const min_heap_iterator& other) const {
+            return current == other.current;
+        }
+    };
+
+    min_heap_iterator begin_heap() {
+        return min_heap_iterator(root);
+    }
+
+    min_heap_iterator end_heap() {
+        return min_heap_iterator();
+    }
 
 };
 

@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <cmath>
+#include <sstream>
+#include <iomanip>
 
 class Complex {
 public:
@@ -33,6 +35,15 @@ public:
                        (imag * other.real - real * other.imag) / denominator);
     }
 
+    // Comparison
+    bool operator==(const Complex& other) const {
+        return real == other.real && imag == other.imag;
+    }
+
+    bool operator>(const Complex& other) const {
+        return this->magnitude() > other.magnitude();
+    }
+
     // Magnitude
     double magnitude() const {
         return sqrt(real * real + imag * imag);
@@ -51,6 +62,15 @@ public:
         os << "(" << c.real << ", " << c.imag << ")";
         return os;
     }
+
+    std::string to_string(const Complex& c)  {
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2); // Set fixed-point notation and precision
+    oss << "(" << real << ", " << imag << "i)";
+    return oss.str();
+}
+
+    
 };
 
 #endif // COMPLEX_HPP
