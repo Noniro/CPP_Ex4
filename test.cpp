@@ -44,7 +44,7 @@ TEST_CASE("Tree - add_sub_node") {
     CHECK_THROWS_AS(tree.add_sub_node(root, child3), std::runtime_error);
 }
 
-TEST_CASE("Tree - DFS iterator") {
+TEST_CASE("Tree - Iterators") {
     Node<int> root(1);
     Node<int> child1(2);
     Node<int> child2(3);
@@ -56,6 +56,23 @@ TEST_CASE("Tree - DFS iterator") {
     tree.add_sub_node(root, child2);
     tree.add_sub_node(child1, child3);
     tree.add_sub_node(child1, child4);
+    SUBCASE("DFS"){
+    auto it = tree.begin_dfs();
+    CHECK(it->value == 1);
+    ++it;
+    CHECK(it->value == 2);
+    ++it;
+    CHECK(it->value == 4);
+    ++it;
+    CHECK(it->value == 5);
+    ++it;
+    CHECK(it->value == 3);
+    ++it;
+    CHECK(it == tree.end_dfs());
+    }
+
+
+SUBCASE("Tree - BFS iterator") {
     auto it = tree.begin_dfs();
     CHECK(it->value == 1);
     ++it;
@@ -70,33 +87,7 @@ TEST_CASE("Tree - DFS iterator") {
     CHECK(it == tree.end_dfs());
 }
 
-TEST_CASE("Tree - BFS iterator") {
-    Node<int> root(1);
-    Node<int> child1(2);
-    Node<int> child2(3);
-    Node<int> child3(4);
-    Node<int> child4(5);
-    Tree<int> tree(2);
-    tree.add_root(root);
-    tree.add_sub_node(root, child1);
-    tree.add_sub_node(root, child2);
-    tree.add_sub_node(child1, child3);
-    tree.add_sub_node(child1, child4);
-    auto it = tree.begin_dfs();
-    CHECK(it->value == 1);
-    ++it;
-    CHECK(it->value == 2);
-    ++it;
-    CHECK(it->value == 4);
-    ++it;
-    CHECK(it->value == 5);
-    ++it;
-    CHECK(it->value == 3);
-    ++it;
-    CHECK(it == tree.end_dfs());
-}
-
-TEST_CASE("Tree - Pre-order iterator") {
+SUBCASE("Tree - Pre-order iterator") {
     Node<int> root(1);
     Node<int> child1(2);
     Node<int> child2(3);
@@ -129,7 +120,7 @@ TEST_CASE("Tree - Pre-order iterator") {
     CHECK(it == tree.end_pre_order());
 }
 
-TEST_CASE("Tree - In-order iterator") {
+SUBCASE("Tree - In-order iterator") {
     Node<int> root(1);
     Node<int> child1(2);
     Node<int> child2(3);
@@ -152,18 +143,7 @@ TEST_CASE("Tree - In-order iterator") {
     CHECK(it == tree.end_in_order());
 }
 
-TEST_CASE("Tree - Post-order iterator") {
-    Node<int> root(1);
-    Node<int> child1(2);
-    Node<int> child2(3);
-    Node<int> child3(4);
-    Node<int> child4(5);
-    Tree<int> tree(2);
-    tree.add_root(root);
-    tree.add_sub_node(root, child1);
-    tree.add_sub_node(root, child2);
-    tree.add_sub_node(child1, child3);
-    tree.add_sub_node(child1, child4);
+SUBCASE("Tree - Post-order iterator") {
 
     std::cout<<"post order check"<<std::endl;
     auto it = tree.begin_post_order();
@@ -184,8 +164,7 @@ TEST_CASE("Tree - Post-order iterator") {
     ++it;
     CHECK(it == tree.end_post_order());
 
-
-    
+}
 }
 
 TEST_CASE("Tree is non-binary - i.e DFS"){
@@ -338,5 +317,92 @@ TEST_CASE("min heap with complex numbers"){
     ++it;
     CHECK(it == tree.end_heap());
 
+}
+ 
+TEST_CASE("Iterators"){
+    Node<int> root(1);
+    Node<int> child1(2);
+    Node<int> child2(3);
+    Node<int> child3(4);
+    Node<int> child4(5);
+    Node<int> child5(6);
+    Node<int> child6(7);
+    Node<int> child7(8);
+    Tree<int> tree(2);
+    tree.add_root(root);
+    tree.add_sub_node(root, child1);
+    tree.add_sub_node(root, child2);
+    tree.add_sub_node(child1, child3);
+    tree.add_sub_node(child1, child4);
+    tree.add_sub_node(child2, child5);
+    tree.add_sub_node(child2, child6);
+    tree.add_sub_node(child5, child7);
+    //        1
+    //      /   \ 
+    //     2     3
+    //    / \   / \     
+    //   4   5 6   7
+    //        /
+    //       8
+    int pre_order[] = {1, 2, 4, 5, 3, 6, 8, 7};
+    int post_order[] = {4, 5, 2, 8, 6, 7, 3, 1};
+    int in_order[] = {4, 2, 5, 1, 8, 6, 3, 7};
+    int dfs[] = {1, 2, 4, 5, 3, 6, 8, 7};
+    int bfs[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    int heap[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    int i = 0;
+    SUBCASE("preorder"){
+    for(auto it = tree.begin_pre_order(); it != tree.end_pre_order(); ++it){
+        CHECK(it->value == pre_order[i]);
+        i++;
+    }
+    }
+    SUBCASE("postorder"){
+    i = 0;
+    for(auto it = tree.begin_post_order(); it != tree.end_post_order(); ++it){
+        CHECK(it->value == post_order[i]);
+        i++;
+    }
+    }
+    SUBCASE("inorder"){
+    i = 0;
+    for(auto it = tree.begin_in_order(); it != tree.end_in_order(); ++it){
+        CHECK(it->value == in_order[i]);
+        i++;
+    }
+    }
+    SUBCASE("DFS"){
+    i = 0;
+    for(auto it = tree.begin_dfs(); it != tree.end_dfs(); ++it){
+        CHECK(it->value == dfs[i]);
+        i++;
+    }
+    }
+    SUBCASE("BFS"){
+    i = 0;
+    for(auto it = tree.begin_bfs(); it != tree.end_bfs(); ++it){
+        CHECK(it->value == bfs[i]);
+        i++;
+    }
+    }
+    SUBCASE("heap"){
+    i = 0;
+    for(auto it = tree.begin_heap(); it != tree.end_heap(); ++it){
+        CHECK(it->value == heap[i]);
+        i++;
+    }
+    }
+
+}
+
+TEST_CASE("empty tree"){
+    Tree<int> tree(2);
+    CHECK(tree.get_root() == nullptr);
+    CHECK(tree.begin_pre_order() == tree.end_pre_order());
+    CHECK(tree.begin_post_order() == tree.end_post_order());
+    CHECK(tree.begin_in_order() == tree.end_in_order());
+    CHECK(tree.begin_dfs() == tree.end_dfs());
+    CHECK(tree.begin_bfs() == tree.end_bfs());
+    CHECK(tree.begin_heap() == tree.end_heap());
 }
 
