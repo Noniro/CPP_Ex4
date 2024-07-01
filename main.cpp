@@ -9,13 +9,13 @@
 #include "Complex.hpp"
 #include "TreeWidget.hpp"
 
+using namespace std;
 
 int main(int argc, char* argv[]) {
     cout<<"just some tests:"<<endl;
     Tree<int> tree(2);
     Node<int> root(1);
     tree.add_root(root);
-
     Node<int> child1(2);
     Node<int> child2(3);
     tree.add_sub_node(root, child1);
@@ -24,35 +24,35 @@ int main(int argc, char* argv[]) {
     Node<int> child4(5);
     tree.add_sub_node(child1, child3);
     tree.add_sub_node(child1, child4);
-    std::cout<<"pre_order"<<std::endl;
+    cout<<"pre_order"<<endl;
     for(auto it = tree.begin_pre_order(); it != tree.end_pre_order(); ++it){
-        std::cout << it->value << std::endl;
+        cout << it->value << endl;
     }
-    std::cout<<"post_order"<<std::endl;
+    cout<<"post_order"<<endl;
     for(auto it = tree.begin_post_order(); it != tree.end_post_order(); ++it){
-        std::cout << it->value << std::endl;
+        cout << it->value << endl;
     }
-    std::cout<<"in_order"<<std::endl;
+    cout<<"in_order"<<endl;
     for(auto it = tree.begin_in_order(); it != tree.end_in_order(); ++it){
-        std::cout << it->value << std::endl;
+        cout << it->value << endl;
     }
-    std::cout<<"DFS"<<std::endl;
+    cout<<"DFS"<<endl;
     for(auto it = tree.begin_dfs(); it != tree.end_dfs(); ++it){
-        std::cout << it->value << std::endl;
+        cout << it->value << endl;
     }
-    std::cout<<"BFS"<<std::endl;
+    cout<<"BFS"<<endl;
     for(auto it = tree.begin_bfs(); it != tree.end_bfs(); ++it){
-        std::cout << it->value << std::endl;
+        cout << it->value << endl;
     }
-    std::cout<<"MinHeap"<<std::endl;
+    cout<<"MinHeap"<<endl;
     for(auto it = tree.begin_heap(); it != tree.end_heap(); ++it){
-        std::cout << it->value << std::endl;
+        cout << it->value << endl;
     }
 
     QApplication app(argc, argv);
     QMainWindow window;
     
-    if(argc <= 1 || std::string(argv[1]) == "tree"){  // a default binary tree (k = 2)
+    if(argc <= 1 || string(argv[1]) == "tree"){  // a default binary tree (k = 2)
         Node<int> n2(2);
         Node<int> n3(3);
         Node<int> n4(4);
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
         return app.exec();
 
-    } else if(argc > 1 && std::string(argv[1]) == "tree1"){  // a ternary tree (k = 3)
+    } else if(argc > 1 && string(argv[1]) == "tree1"){  // a ternary tree (k = 3)
         Tree<int> tree(3);
         Node<int> root_node(1);
         tree.add_root(root_node);
@@ -96,15 +96,15 @@ int main(int argc, char* argv[]) {
 
         return app.exec();
 
-    }else if(argc > 1 && std::string(argv[1]) == "tree2"){  // a quaternary tree (k = 4) with strings
-        Node<std::string> root_node("BB");
-        Node<std::string> n2("gantz");
-        Node<std::string> n3("lapid");
-        Node<std::string> n4("noam");
-        Node<std::string> n5("yosi");
-        Node<std::string> n6("avner");
-        Node<std::string> n7("iztik");
-        Tree<std::string> tree(4);
+    }else if(argc > 1 && string(argv[1]) == "tree2"){  // a quaternary tree (k = 4) with strings
+        Node<string> root_node("BB");
+        Node<string> n2("gantz");
+        Node<string> n3("lapid");
+        Node<string> n4("noam");
+        Node<string> n5("yosi");
+        Node<string> n6("avner");
+        Node<string> n7("iztik");
+        Tree<string> tree(4);
         tree.add_root(root_node);
         tree.add_sub_node(*tree.get_root(), n2);
         tree.add_sub_node(*tree.get_root(), n3);
@@ -112,15 +112,15 @@ int main(int argc, char* argv[]) {
         tree.add_sub_node(*tree.get_root(), n5);
         tree.add_sub_node(n2, n6);
         tree.add_sub_node(n2, n7);
-
-        TreeWidget<std::string>* treeWidget = new TreeWidget<std::string>(tree);
+        
+        TreeWidget<string>* treeWidget = new TreeWidget<string>(tree);
         window.setCentralWidget(treeWidget);
         window.resize(800, 600);
         window.show();
 
         return app.exec();
         
-    }else if(argc > 1 && std::string(argv[1]) == "tree3"){  // a quaternary tree (k = 4) with complex numbers
+    }else if(argc > 1 && string(argv[1]) == "tree3"){  // a quaternary tree (k = 4) with complex numbers
         Node<Complex> root_node(Complex(1, 2));
         Node<Complex> n2(Complex(3, 4));
         Node<Complex> n3(Complex(5, 6));
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
         return app.exec();
 
-    }else if(argc > 1 && std::string(argv[1]) == "complex"){
+    }else if(argc > 1 && string(argv[1]) == "complex"){
         FractalWidget* fractalWidget = new FractalWidget();
         window.setCentralWidget(fractalWidget);
         window.resize(800, 800);
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
 
         return app.exec();
     } else {
-        std::cerr << "Usage: " << argv[0] << " [tree1|tree2|tree3|complex]" << std::endl;
+        cerr << "Usage: " << argv[0] << " [tree1|tree2|tree3|complex]" << endl;
         return 1;
     }
 
